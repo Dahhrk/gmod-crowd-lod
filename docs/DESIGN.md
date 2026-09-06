@@ -44,8 +44,11 @@ Counts come from rows at ticket time. JSON does not store a parallel count objec
 - Between the two, snap an integer lod in `1..maxLod`.
 - At or beyond `shadowFar`, `DrawShadow(false)`.
 - Never set a material. Never `DrawModel` from the hook. Never `return true` from `PrePlayerDraw`.
+- Walking toward someone (`dist < near`) restores engine LOD automatically. Walking away forces `maxLod`. No command required.
+- `PrePlayerDraw` calls `Evaluate(..., false)`. It applies and never probes meshes. `crowdlod_sweep` calls `Evaluate(..., true)` for the ticket.
+- `crowdlod_enabled 0` restores `SetLOD(-1)` on other players.
 
-Capability is `util.GetModelMeshes(path, 0)` vs `util.GetModelMeshes(path, 1)`. Different mesh counts means `has_lod`. Same or missing lod-1 means `no_lod`. Both nil is `missing` and is not cached as `has_lod`. Look-proof can replace that body.
+Capability is `util.GetModelMeshes(path, 0)` vs `util.GetModelMeshes(path, 1)`. Different mesh counts means `has_lod`. Same or missing lod-1 means `no_lod`. Both nil is `missing` and is not cached as `has_lod`. The probe runs on sweep only. Look-proof can replace that body.
 
 There is no `Entity:GetLOD`. `already` is session memory of the last apply per entity.
 

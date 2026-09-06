@@ -150,7 +150,7 @@ function CrowdLod.Sweep()
 	local list = player.GetAll()
 	local i = 1
 	while i <= #list do
-		rows[i] = CrowdLod.Evaluate(list[i], eye, policy)
+		rows[i] = CrowdLod.Evaluate(list[i], eye, policy, true)
 		i = i + 1
 	end
 	local sweep = {

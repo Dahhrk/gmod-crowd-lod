@@ -139,7 +139,7 @@ function CrowdLod.ApplyDecision(ply, decision)
 	ply:DrawShadow(decision.shadow)
 end
 
-function CrowdLod.Evaluate(ply, viewerEye, policy)
+function CrowdLod.Evaluate(ply, viewerEye, policy, forSweep)
 	local entIndex = 0
 	if IsValid(ply) then
 		entIndex = ply:EntIndex()
@@ -166,8 +166,11 @@ function CrowdLod.Evaluate(ply, viewerEye, policy)
 		capability = nil,
 	}
 	local decision = CrowdLod.Decide(input)
+	CrowdLod.ApplyDecision(ply, decision)
+	if not forSweep then
+		return nil
+	end
 	if decision.kind == "skip" then
-		CrowdLod.ApplyDecision(ply, decision)
 		return {
 			status = "skipped",
 			entIndex = entIndex,
@@ -194,7 +197,6 @@ function CrowdLod.Evaluate(ply, viewerEye, policy)
 		}
 	end
 	if cap == "no_lod" then
-		CrowdLod.ApplyDecision(ply, decision)
 		return {
 			status = "no_lod",
 			entIndex = entIndex,
@@ -204,7 +206,6 @@ function CrowdLod.Evaluate(ply, viewerEye, policy)
 			shadow = decision.shadow,
 		}
 	end
-	CrowdLod.ApplyDecision(ply, decision)
 	local prev = lastApplyByEnt[entIndex]
 	local status = "ok"
 	if prev and prev.model == model and prev.lod == decision.lod and prev.shadow == decision.shadow then
@@ -251,7 +252,11 @@ function CrowdLod.OnPrePlayerDraw(ply, flags)
 	end
 	local policy = CrowdLod.Policy()
 	if not policy.enabled then
+		if ply ~= LocalPlayer() then
+			ply:SetLOD(-1)
+			ply:DrawShadow(true)
+		end
 		return
 	end
-	CrowdLod.Evaluate(ply, EyePos(), policy)
+	CrowdLod.Evaluate(ply, EyePos(), policy, false)
 end

@@ -1,0 +1,15 @@
+{
+  "title": "Crowd LOD",
+  "type": "tool",
+  "tags": ["roleplay", "realism"],
+  "ignore": [
+    ".git/*",
+    ".github/*",
+    ".cursor/*",
+    "docs/*",
+    "tools/*",
+    "*.md",
+    ".gitignore",
+    "LICENSE"
+  ]
+}

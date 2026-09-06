@@ -1,0 +1,19 @@
+.DS_Store
+Thumbs.db
+*.gma
+data/
+.idea/
+.vscode/
+*.log
+.env
+.env.*
+
+local/
+
+# Agent / factory kit — keep on disk, not on public GitHub
+.cursor/
+.github/
+tools/
+AGENTS.md
+BUGBOT.md
+PRIVATE.md

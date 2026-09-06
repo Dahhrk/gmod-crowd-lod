@@ -7,7 +7,7 @@ This addon cheapens **other players** on the client. It does not fix edicts. It 
 1. Put the addon folder in `garrysmod/addons/gmod-crowd-lod`.
 2. Keep `lua/autorun/aaa_crowd_lod.lua` so the dedicated box sends the client files.
 3. Restart the map.
-4. Join. Walk toward and away from other players. LOD applies on its own. `crowdlod_sweep` only prints the ticket.
+4. Join. Walk or stand still. Distance LOD applies on its own. `crowdlod_sweep` only prints the ticket.
 
 Hosted panels (Icefuse, Pingperfect, etc.): upload via FTP/SFTP into `garrysmod/addons/`.
 
@@ -15,11 +15,13 @@ Hosted panels (Icefuse, Pingperfect, etc.): upload via FTP/SFTP into `garrysmod/
 
 | Convar | Default | Meaning |
 |---|---|---|
-| `crowdlod_enabled` | 1 | Apply on every other-player draw. `0` restores engine LOD |
-| `crowdlod_near` | 512 | Engine auto LOD closer than this |
+| `crowdlod_enabled` | 1 | Apply while you move or stand still. `0` restores engine LOD |
+| `crowdlod_near` | 512 | Full quality closer than this |
 | `crowdlod_far` | 2048 | Force `crowdlod_max` at or beyond this |
 | `crowdlod_max` | 3 | LOD index 1..8 |
 | `crowdlod_shadow_far` | 1024 | Turn player shadows off at or beyond this |
+| `crowdlod_min_others` | 1 | Do not cheapen until this many other players exist |
+| `crowdlod_think` | 0.15 | Seconds between full pulses while you stand still |
 
 `near` must stay below `far`.
 

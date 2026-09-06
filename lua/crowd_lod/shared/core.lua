@@ -5,6 +5,7 @@ local SKIP_REASONS = {
 	invalid = true,
 	disabled = true,
 	near = true,
+	quiet = true,
 }
 
 function CrowdLod.ParseDistance(n)
@@ -53,12 +54,20 @@ function CrowdLod.ParsePolicy(raw)
 		error("crowd-lod: maxLod must be 1..8")
 	end
 	local shadowFar = CrowdLod.ParseDistance(raw.shadowFar)
+	local minOthers = tonumber(raw.minOthers)
+	if minOthers == nil then
+		minOthers = 1
+	end
+	if minOthers ~= math.floor(minOthers) or minOthers < 0 then
+		error("crowd-lod: bad minOthers")
+	end
 	return {
 		enabled = enabled,
 		near = near,
 		far = far,
 		maxLod = maxLod,
 		shadowFar = shadowFar,
+		minOthers = minOthers,
 	}
 end
 
@@ -74,6 +83,13 @@ function CrowdLod.Decide(input)
 	end
 	if input.isLocal then
 		return { kind = "skip", reason = "local_player" }
+	end
+	local others = input.others
+	if others == nil then
+		others = 0
+	end
+	if others < input.policy.minOthers then
+		return { kind = "skip", reason = "quiet" }
 	end
 	if input.dist < input.policy.near then
 		return { kind = "skip", reason = "near" }
@@ -162,6 +178,7 @@ function CrowdLod.Evaluate(ply, viewerEye, policy, forSweep)
 		valid = valid,
 		model = model,
 		dist = dist,
+		others = CrowdLod.OtherCount(),
 		policy = policy,
 		capability = nil,
 	}
@@ -229,6 +246,29 @@ end
 
 local policyFrame = -1
 local policyCache = nil
+local othersFrame = -1
+local othersCache = 0
+
+function CrowdLod.OtherCount()
+	local fn = FrameNumber()
+	if othersFrame == fn then
+		return othersCache
+	end
+	local n = 0
+	local me = LocalPlayer()
+	local list = player.GetAll()
+	local i = 1
+	while i <= #list do
+		local ply = list[i]
+		if IsValid(ply) and ply ~= me then
+			n = n + 1
+		end
+		i = i + 1
+	end
+	othersFrame = fn
+	othersCache = n
+	return n
+end
 
 function CrowdLod.Policy()
 	local fn = FrameNumber()
@@ -241,9 +281,31 @@ function CrowdLod.Policy()
 		far = GetConVar("crowdlod_far"):GetFloat(),
 		maxLod = GetConVar("crowdlod_max"):GetInt(),
 		shadowFar = GetConVar("crowdlod_shadow_far"):GetFloat(),
+		minOthers = GetConVar("crowdlod_min_others"):GetInt(),
 	})
 	policyFrame = fn
 	return policyCache
+end
+
+function CrowdLod.Pulse()
+	local policy = CrowdLod.Policy()
+	local eye = EyePos()
+	local list = player.GetAll()
+	local i = 1
+	while i <= #list do
+		local ply = list[i]
+		if IsValid(ply) then
+			if not policy.enabled then
+				if ply ~= LocalPlayer() then
+					ply:SetLOD(-1)
+					ply:DrawShadow(true)
+				end
+			else
+				CrowdLod.Evaluate(ply, eye, policy, false)
+			end
+		end
+		i = i + 1
+	end
 end
 
 function CrowdLod.OnPrePlayerDraw(ply, flags)

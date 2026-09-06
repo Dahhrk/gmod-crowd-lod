@@ -1,22 +1,23 @@
 # Crowd LOD
 
-A Garry's Mod client addon. It cheapens **other players** as you move. Close people stay full quality. Distant people use cheaper engine LOD. Skins stay on.
+A Garry's Mod client addon. It cheapens **other players** by distance. Close people stay full quality. Distant people use cheaper engine LOD. Skins stay on.
 
-You do not run a command for that. The addon does it while you walk.
+It runs by itself. Walking and standing still both keep it current. It only cheapens when at least one other player is on the box and they are far enough.
 
 ## Install
 
 1. Put this folder in `garrysmod/addons/gmod-crowd-lod` on the dedicated server so clients get it.
 2. Restart the map.
-3. Join and walk toward people, then away from them.
+3. Join. Walk or stand still. Look toward people and away from them.
 
 Defaults are already on (`crowdlod_enabled 1`). Tune distances in [docs/OPS.md](docs/OPS.md) if a hangar needs different ranges.
 
 ## What happens on its own
 
-- You walk toward someone. They use normal engine LOD. They look like themselves.
-- You walk away. The client asks Source for a cheaper LOD on that player.
-- You walk back. Full quality comes back.
+- Someone is close (inside `crowdlod_near`, default 512). They stay full quality.
+- Someone is farther. The client asks Source for a cheaper LOD.
+- You stand still. A short Think pulse keeps those distances up to date.
+- You are alone. Nothing is cheapened. The addon waits until someone else is there.
 - You turn the addon off. Other players restore to engine LOD.
 
 Your own playermodel is left alone.

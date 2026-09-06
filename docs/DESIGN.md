@@ -12,7 +12,7 @@ One last look. Not a live stream. Not a renderer.
 LodStatus = "ok" | "already" | "no_lod" | "skipped" | "missing"
 
 LodPolicy
-  enabled, near, far, maxLod, shadowFar
+  enabled, near, far, maxLod, shadowFar, minOthers
 
 LodSweep
   map, lookedAt, policy, rows
@@ -45,7 +45,8 @@ Counts come from rows at ticket time. JSON does not store a parallel count objec
 - At or beyond `shadowFar`, `DrawShadow(false)`.
 - Never set a material. Never `DrawModel` from the hook. Never `return true` from `PrePlayerDraw`.
 - Walking toward someone (`dist < near`) restores engine LOD automatically. Walking away forces `maxLod`. No command required.
-- `PrePlayerDraw` calls `Evaluate(..., false)`. It applies and never probes meshes. `crowdlod_sweep` calls `Evaluate(..., true)` for the ticket.
+- `PrePlayerDraw` calls `Evaluate(..., false)` for the player on screen. Client `Think` calls `Pulse` so standing still still updates people behind you.
+- Cheap LOD is skipped (`quiet`) when other players are below `minOthers`.
 - `crowdlod_enabled 0` restores `SetLOD(-1)` on other players.
 
 Capability is `util.GetModelMeshes(path, 0)` vs `util.GetModelMeshes(path, 1)`. Different mesh counts means `has_lod`. Same or missing lod-1 means `no_lod`. Both nil is `missing` and is not cached as `has_lod`. The probe runs on sweep only. Look-proof can replace that body.
@@ -60,17 +61,18 @@ There is no `Entity:GetLOD`. `already` is session memory of the last apply per e
 - `crowdlod_sweep` write + print
 - `crowdlod_last` reprint
 
-No panel. No server Think. No net.
+No panel. No server Think. Client Think pulses apply. No net.
 
 Owner ops: [OPS.md](OPS.md).
 
 ## Layout
 
 ```
-lua/autorun/aaa_crowd_lod.lua   -- AddCSLuaFile + includes
-lua/crowdlod/core.lua           -- Policy, Decide, apply
-lua/crowdlod/sweep.lua          -- LodSweep, ParseSweep, Ticket
-lua/crowdlod/client.lua         -- convars, hook, commands
+lua/autorun/aaa_crowd_lod.lua        -- early boot; AddCSLuaFile + includes only
+lua/crowd_lod/
+  shared/core.lua                    -- Policy, Decide, apply
+  shared/sweep.lua                   -- LodSweep, ParseSweep, Ticket
+  client/apply.lua                   -- convars, hooks, commands
 ```
 
 Commands stay `crowdlod_*`. Global table stays `CrowdLod`.
